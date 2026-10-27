@@ -159,16 +159,32 @@
       loading.style.display = 'block';
 
       try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-        tableData = data;
+        const response = await fetch(API_URL, { redirect: 'follow' });
+        const textData = await response.text(); // Ambil jawaban mentah dari Google
         
-        loading.style.display = 'none';
-        renderTable();
-        setupFormKondisi();
+        try {
+          // Coba jadikan JSON
+          const data = JSON.parse(textData);
+          if (data.error) {
+            alert("Error dari Script: " + data.error);
+            loading.style.display = 'none';
+            return;
+          }
+          
+          tableData = data;
+          loading.style.display = 'none';
+          renderTable();
+          setupFormKondisi();
+          
+        } catch (parseError) {
+          // Jika gagal, berarti Google mengirim halaman Login/Error HTML, bukan data!
+          loading.style.display = 'none';
+          alert("Gagal membaca data! Google merespon begini: \n\n" + textData.substring(0, 100) + "...");
+        }
+
       } catch (err) {
         loading.style.display = 'none';
-        alert('Gagal memuat data. Pastikan URL API benar dan HP ada kuota internet.');
+        alert('CORS/Jaringan diblokir! Pesan asli: ' + err.message);
       }
     }
 
