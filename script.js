@@ -1,5 +1,5 @@
 // GANTI DENGAN URL APLIKASI WEB DARI GOOGLE APPS SCRIPT ANDA
-const API_URL = 'https://script.google.com/macros/s/AKfycbxXTPW2wCfYUwmpmPnpQTv1riLurWqzgVv5R0Rq9GXdk9Ri22XWmSZRHGZpDVFPhs3UPg/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbw5cOGg2mGJKnZON-VJE3ZZViCS4ZLpn6AzIC5kdWdRmVFAZi4vnc2gCUjmlQ9LkDH_wg/exec'; 
 
 document.getElementById('tanggal').valueAsDate = new Date();
 
@@ -16,15 +16,33 @@ function switchTab(tabId) {
 
 // Ambil data dari Sheets
 async function fetchData() {
-  document.querySelector('tbody').innerHTML = '<tr><td colspan="5">Memuat data...</td></tr>';
+  const tbody = document.querySelector('tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Memuat data...</td></tr>';
+  
   try {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    tableData = data;
-    renderLaporan();
-    setupEntryForm();
+    // Tambahkan redirect: 'follow' karena Google selalu me-redirect URL API-nya
+    const response = await fetch(API_URL, {
+      method: 'GET',
+      redirect: 'follow' 
+    });
+    
+    // Ambil sebagai teks terlebih dahulu untuk menghindari crash jika Google mengirim halaman HTML Error
+    const textData = await response.text();
+    
+    try {
+      const data = JSON.parse(textData);
+      tableData = data;
+      renderLaporan();
+      setupEntryForm();
+    } catch (parseError) {
+      console.error("Respons dari server bukan JSON, melainkan:", textData);
+      alert("Error: Script Google tidak mengembalikan data yang benar. Cek Console.");
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;">Gagal memuat format data</td></tr>';
+    }
+
   } catch (err) {
-    alert('Gagal memuat data');
+    console.error("Gagal melakukan Fetch:", err);
+    alert('Gagal menyambung ke server Google. Cek koneksi atau URL API.');
   }
 }
 
