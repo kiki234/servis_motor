@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pencatatan Operasional</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>Pencatatan Harian</h1>
+      <nav>
+        <button id="btn-entry" class="active" onclick="switchTab('entry')">Entry</button>
+        <button id="btn-laporan" onclick="switchTab('laporan')">Laporan</button>
+      </nav>
+    </header>
+
+    <!-- Halaman Entry -->
+    <main id="view-entry" class="view active">
+      <form id="dataForm">
+        <div class="form-group">
+          <label>Tanggal</label>
+          <input type="date" id="tanggal" required>
+        </div>
+        <div class="form-group">
+          <label>Pekerjaan</label>
+          <input type="text" id="pekerjaan" list="job-list" placeholder="Ketik/pilih pekerjaan" required>
+          <datalist id="job-list"></datalist>
+        </div>
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Odometer Awal</label>
+            <input type="number" id="odo_awal" required oninput="hitungSelisih()">
+          </div>
+          <div class="form-group half">
+            <label>Odometer Akhir</label>
+            <input type="number" id="odo_akhir" required oninput="hitungSelisih()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Biaya (Rp)</label>
+          <input type="text" id="biaya" placeholder="Rp 0" required oninput="formatRupiah(this)">
+        </div>
+        <button type="submit" class="btn-submit" id="btn-submit-form">Simpan Data</button>
+      </form>
+    </main>
+
+    <!-- Halaman Laporan -->
+    <main id="view-laporan" class="view">
+      <div class="table-responsive">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Pekerjaan</th>
+              <th>Selisih Odo</th>
+              <th>Biaya</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data dari JS -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
