@@ -1,5 +1,5 @@
 // GANTI DENGAN URL APLIKASI WEB DARI GOOGLE APPS SCRIPT ANDA
-const API_URL = 'https://script.google.com/macros/s/AKfycbw5cOGg2mGJKnZON-VJE3ZZViCS4ZLpn6AzIC5kdWdRmVFAZi4vnc2gCUjmlQ9LkDH_wg/exec'; 
+const API_URL = 'hhttps://script.google.com/macros/s/AKfycbyXcmEmCutCto-V_Wmz_SjwoLmBy-H8l6j3voEy1thSmeDTFjrgcOsWPeNL2vKIFCT4TA/exec'; 
 
 document.getElementById('tanggal').valueAsDate = new Date();
 
