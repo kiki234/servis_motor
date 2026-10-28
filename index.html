@@ -1,394 +1,248 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pencatatan Harian</title>
-  <style>
-    /* ================= CSS (STYLING) ================= */
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    body { background-color: #fffbeb; display: flex; justify-content: center; }
-    
-    .app-container {
-      width: 100%;
-      max-width: 500px;
-      background-color: #ffffff;
-      min-height: 100vh;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      position: relative;
-      padding-bottom: 60px;
-    }
-
-    /* HEADER & TAB */
-    header { background-color: #fbbf24; padding: 20px; text-align: center; color: #78350f; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
-    header h1 { font-size: 22px; margin-bottom: 15px; font-weight: 800; }
-    
-    nav { display: flex; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    nav button { flex: 1; padding: 12px; border: none; background: transparent; font-weight: bold; color: #9ca3af; cursor: pointer; transition: 0.3s; font-size: 15px; }
-    nav button.active { background-color: #f59e0b; color: white; }
-
-    /* KONTEN TAMPILAN */
-    .view { display: none; padding: 20px; animation: fadeIn 0.4s; }
-    .view.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* FORM */
-    .form-group { margin-bottom: 15px; }
-    .form-row { display: flex; gap: 15px; }
-    .half { flex: 1; }
-    label { display: block; font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 6px; }
-    input { width: 100%; padding: 12px; border: 2px solid #fde68a; border-radius: 10px; font-size: 15px; outline: none; transition: 0.2s; background: #fffbeb; color:#451a03;}
-    input:focus { border-color: #f59e0b; background: #fff; }
-    input[readonly] { background-color: #e5e7eb; color: #6b7280; border-color: #d1d5db; }
-    
-    .btn-submit { width: 100%; padding: 16px; border: none; border-radius: 10px; background-color: #f59e0b; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3); }
-    .btn-submit:active { transform: scale(0.98); }
-    .btn-cancel { width: 100%; padding: 12px; border: 2px solid #f59e0b; border-radius: 10px; background-color: white; color: #f59e0b; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none;}
-
-    /* TABEL LAPORAN */
-    .table-container { overflow-x: auto; background: white; border-radius: 10px; border: 1px solid #fde68a; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #fef3c7; white-space: nowrap; }
-    th { background-color: #fde68a; color: #92400e; font-weight: 700; }
-    
-    /* TOMBOL AKSI TABEL */
-    .action-btns { display: flex; gap: 5px; }
-    .btn-edit { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;}
-    .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;}
-
-    /* LOADING SCREEN */
-    #loading { text-align: center; color: #f59e0b; font-weight: bold; margin-top: 20px; font-size: 14px; display: none; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servis Motor Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS (Excel) & jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 font-sans p-4 md:p-8">
 
-  <div class="app-container">
-    <header>
-      <h1>Pencatatan Operasional</h1>
-      <nav>
-        <button id="btn-entry" class="active" onclick="switchTab('entry')">Entry Form</button>
-        <button id="btn-laporan" onclick="switchTab('laporan')">Data Laporan</button>
-      </nav>
-    </header>
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold text-center mb-6 text-blue-600">Catatan Servis Motor</h1>
 
-    <!-- TAB ENTRY -->
-    <main id="view-entry" class="view active">
-      <form id="dataForm">
-        <!-- Hidden ID for update purpose -->
-        <input type="hidden" id="entry_id" value="">
+        <!-- Form Entry -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <form id="servisForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tanggal</label>
+                    <input type="date" id="inputTanggal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Pekerjaan Servis</label>
+                    <!-- Menggunakan input dengan datalist agar mendukung pencarian otomatis dari entri sebelumnya -->
+                    <input type="text" id="inputPekerjaan" list="pekerjaanList" placeholder="Misal: Ganti Oli Gardan, Servis CVT..." required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200">
+                    <datalist id="pekerjaanList"></datalist>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Odo Awal (Km)</label>
+                        <input type="number" id="odoAwal" required class="w-full border-gray-300 border p-2 rounded bg-gray-50 focus:ring focus:ring-blue-200" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Odo Akhir (Km)</label>
+                        <input type="number" id="odoAkhir" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200" placeholder="0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Selisih Odo (Km)</label>
+                    <input type="number" id="selisihOdo" readonly class="w-full bg-gray-200 border-gray-300 border p-2 rounded" placeholder="0">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nominal Biaya (Rp)</label>
+                    <input type="text" id="inputNominal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200" placeholder="10.000">
+                </div>
+
+                <button type="submit" id="btnSubmit" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition">
+                    Simpan Data
+                </button>
+            </form>
+        </div>
+
+        <!-- Action & Table -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Riwayat Servis</h2>
+            <div class="space-x-2">
+                <button onclick="exportExcel()" class="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700">Excel</button>
+                <button onclick="exportPDF()" class="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700">PDF</button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-x-auto">
+            <table class="w-full text-sm text-left" id="dataTable">
+                <thead class="bg-gray-50 text-gray-700">
+                    <tr>
+                        <th class="p-3">Tanggal</th>
+                        <th class="p-3">Pekerjaan</th>
+                        <th class="p-3">Odo Selisih</th>
+                        <th class="p-3">Biaya</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="divide-y">
+                    <tr><td colspan="4" class="p-4 text-center">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN URL WEB APP GAS DI SINI
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw--91FQTpJXwgz71TRIanq1g-BE2DoMgkinfnaZr5g-x66F_ER4PUWrkBeFCYhmA1xRQ/exec';
         
-        <div class="form-group">
-          <label>Tanggal</label>
-          <input type="date" id="tanggal" required>
-        </div>
-        <div class="form-group">
-          <label>Pekerjaan</label>
-          <input type="text" id="pekerjaan" list="job-list" placeholder="Ketik atau pilih pekerjaan" required autocomplete="off">
-          <datalist id="job-list"></datalist>
-        </div>
-        <div class="form-row">
-          <div class="form-group half">
-            <label>Odo Awal</label>
-            <input type="number" id="odo_awal" required>
-          </div>
-          <div class="form-group half">
-            <label>Odo Akhir</label>
-            <input type="number" id="odo_akhir" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Biaya / Rupiah</label>
-          <input type="text" id="biaya" placeholder="Rp 0" required oninput="formatRupiah(this)">
-        </div>
-        <button type="submit" class="btn-submit" id="btn-submit-form">Simpan Data</button>
-        <button type="button" class="btn-cancel" id="btn-cancel-edit" onclick="cancelEdit()">Batal Edit</button>
-      </form>
-    </main>
+        let allData = [];
 
-    <!-- TAB LAPORAN -->
-    <main id="view-laporan" class="view">
-      <div id="loading">Memuat data dari server...</div>
-      <div class="table-container">
-        <table id="dataTable">
-          <thead>
-            <tr>
-              <th>Tgl</th>
-              <th>Pekerjaan</th>
-              <th>Odo (Km)</th>
-              <th>Biaya</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Data Masuk Kesini -->
-          </tbody>
-        </table>
-      </div>
-    </main>
-  </div>
-
-  <script>
-    /* ================= JAVASCRIPT (LOGIKA) ================= */
-    
-    // !!! WAJIB GANTI URL DI BAWAH INI DENGAN URL WEB APP MILIK ANDA !!!
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwRb6WW-IWJ-5axwRlkASaa-P8WQYdpwtthghRiaeDu83yYpCwiORsmhRBJsYTr4FIp/exec'; 
-    
-    let tableData = [];
-    let currentMode = 'create'; // Mode: 'create' atau 'update'
-
-    // Set tanggal hari ini saat awal dibuka
-    document.getElementById('tanggal').valueAsDate = new Date();
-
-    // Fungsi Pindah Tab Menu
-    function switchTab(tabId) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-      
-      document.getElementById('view-' + tabId).classList.add('active');
-      document.getElementById('btn-' + tabId).classList.add('active');
-      
-      if(tabId === 'laporan') fetchData();
-    }
-
-    // Fungsi Mengambil Data dari Google Sheets (Read)
-    async function fetchData() {
-      const tbody = document.querySelector('tbody');
-      const loading = document.getElementById('loading');
-      
-      tbody.innerHTML = '';
-      loading.style.display = 'block';
-
-      try {
-        const response = await fetch(API_URL, { redirect: 'follow' });
-        const textData = await response.text(); // Ambil jawaban mentah dari Google
-        
-        try {
-          // Coba jadikan JSON
-          const data = JSON.parse(textData);
-          if (data.error) {
-            alert("Error dari Script: " + data.error);
-            loading.style.display = 'none';
-            return;
-          }
-          
-          tableData = data;
-          loading.style.display = 'none';
-          renderTable();
-          setupFormKondisi();
-          
-        } catch (parseError) {
-          // Jika gagal, berarti Google mengirim halaman Login/Error HTML, bukan data!
-          loading.style.display = 'none';
-          alert("Gagal membaca data! Google merespon begini: \n\n" + textData.substring(0, 100) + "...");
-        }
-
-      } catch (err) {
-        loading.style.display = 'none';
-        alert('CORS/Jaringan diblokir! Pesan asli: ' + err.message);
-      }
-    }
-
-    // Fungsi Menyiapkan Form (Kunci Odo & Dropdown)
-    function setupFormKondisi() {
-      if (currentMode === 'update') return; // Jika sedang mode edit, jangan kunci odo awal
-
-      const odoAwalInput = document.getElementById('odo_awal');
-      
-      if (tableData.length > 0) {
-        // Ambil data baris terakhir (paling bawah di google sheets)
-        const lastRow = tableData[tableData.length - 1];
-        odoAwalInput.value = lastRow.odo_akhir;
-        odoAwalInput.readOnly = true; // Kunci Odo Awal
-      } else {
-        odoAwalInput.readOnly = false; // Buka jika belum ada data sama sekali
-      }
-
-      // Kumpulkan jenis pekerjaan yang pernah diketik untuk dimasukkan ke fitur pencarian(Datalist)
-      const uniqueJobs = [...new Set(tableData.map(item => item.pekerjaan))];
-      const dataList = document.getElementById('job-list');
-      dataList.innerHTML = '';
-      uniqueJobs.forEach(job => {
-        if(job.trim() !== '') {
-          const option = document.createElement('option');
-          option.value = job;
-          dataList.appendChild(option);
-        }
-      });
-    }
-
-    // Fungsi Format Rupiah Realtime saat Mengetik
-    function formatRupiah(input) {
-      let angka = input.value.replace(/[^,\d]/g, '').toString();
-      let split = angka.split(',');
-      let sisa = split[0].length % 3;
-      let rupiah = split[0].substr(0, sisa);
-      let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-      if (ribuan) {
-        let separator = sisa ? '.' : '';
-        rupiah += separator + ribuan.join('.');
-      }
-      input.value = rupiah ? 'Rp ' + rupiah : '';
-    }
-
-    // Fungsi Submit Form (Create / Update)
-    document.getElementById('dataForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('btn-submit-form');
-      btn.innerText = 'Menyimpan...';
-      btn.disabled = true;
-
-      const odo_awal = Number(document.getElementById('odo_awal').value);
-      const odo_akhir = Number(document.getElementById('odo_akhir').value);
-      
-      if(odo_akhir < odo_awal) {
-        alert("Odometer Akhir tidak boleh lebih kecil dari Odometer Awal!");
-        btn.innerText = currentMode === 'update' ? 'Update Data' : 'Simpan Data';
-        btn.disabled = false;
-        return;
-      }
-
-      // Hapus tulisan "Rp" dan titik untuk menyimpan angka murni ke database
-      let biayaAngka = document.getElementById('biaya').value.replace(/[^0-9]/g, '');
-      if(!biayaAngka) biayaAngka = 0;
-
-      const payload = {
-        action: currentMode,
-        id: document.getElementById('entry_id').value,
-        tanggal: document.getElementById('tanggal').value,
-        pekerjaan: document.getElementById('pekerjaan').value,
-        odo_awal: odo_awal,
-        odo_akhir: odo_akhir,
-        selisih: odo_akhir - odo_awal,
-        biaya: biayaAngka
-      };
-
-      try {
-        // Menggunakan text/plain untuk melewati masalah CORS Blocked dari Google
-        await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
+        // Format Rupiah Input (1000 -> 1.000)
+        const inputNominal = document.getElementById('inputNominal');
+        inputNominal.addEventListener('input', function(e) {
+            let value = this.value.replace(/[^,\d]/g, '').toString();
+            let split = value.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+            this.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
         });
 
-        alert(currentMode === 'update' ? 'Data berhasil diupdate!' : 'Data harian berhasil disimpan!');
-        
-        // Reset Form
-        cancelEdit(); // Kembalikan ke mode create
-        document.getElementById('pekerjaan').value = '';
-        document.getElementById('odo_akhir').value = '';
-        document.getElementById('biaya').value = '';
-        
-        // Load data terbaru agar Odo Awal di-update otomatis
-        fetchData(); 
+        // Kalkulasi Otomatis Selisih Odo
+        const odoAwal = document.getElementById('odoAwal');
+        const odoAkhir = document.getElementById('odoAkhir');
+        const selisihOdo = document.getElementById('selisihOdo');
 
-      } catch (error) {
-        alert("Terjadi kesalahan jaringan saat menyimpan data.");
-      }
+        odoAkhir.addEventListener('input', () => {
+            const awal = parseInt(odoAwal.value) || 0;
+            const akhir = parseInt(odoAkhir.value) || 0;
+            selisihOdo.value = Math.max(0, akhir - awal);
+        });
 
-      btn.innerText = 'Simpan Data';
-      btn.disabled = false;
-    });
+        // Format Tanggal (DD-MMMM-YYYY)
+        const formatTanggal = (dateStr) => {
+            const date = new Date(dateStr);
+            const options = { day: '2-digit', month: 'long', year: 'numeric' };
+            return date.toLocaleDateString('id-ID', options).replace(/ /g, '-');
+        };
 
-    // Render Tabel (Memasukkan data ke HTML)
-    function renderTable() {
-      const tbody = document.querySelector('tbody');
-      tbody.innerHTML = '';
-      
-      // Kita balik agar data terbaru ada di paling atas (Reverse)
-      const reversedData = [...tableData].reverse();
-      
-      if(reversedData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr>';
-        return;
-      }
-
-      reversedData.forEach(row => {
-        const tr = document.createElement('tr');
-        
-        // Format tanggal (YYYY-MM-DD)
-        let tglStr = row.tanggal;
-        if(tglStr.includes('T')) tglStr = tglStr.split('T')[0];
-
-        // Format Biaya Rupiah ke tabel
-        let biayaFormat = 'Rp ' + Number(row.biaya).toLocaleString('id-ID');
-
-        tr.innerHTML = `
-          <td>${tglStr}</td>
-          <td>${row.pekerjaan}</td>
-          <td>${row.selisih}</td>
-          <td>${biayaFormat}</td>
-          <td class="action-btns">
-            <button class="btn-edit" onclick="editData('${row.id}')">Edit</button>
-            <button class="btn-delete" onclick="hapusData('${row.id}')">Hapus</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Fungsi Mulai Edit (Update)
-    function editData(id) {
-      const row = tableData.find(r => r.id === id);
-      if(!row) return;
-
-      currentMode = 'update';
-      document.getElementById('entry_id').value = row.id;
-      
-      let tglStr = row.tanggal;
-      if(tglStr.includes('T')) tglStr = tglStr.split('T')[0];
-      
-      document.getElementById('tanggal').value = tglStr;
-      document.getElementById('pekerjaan').value = row.pekerjaan;
-      
-      // Buka gembok odo awal saat mode edit
-      const odoAwalInput = document.getElementById('odo_awal');
-      odoAwalInput.readOnly = false;
-      odoAwalInput.value = row.odo_awal;
-      
-      document.getElementById('odo_akhir').value = row.odo_akhir;
-      
-      // Tampilkan biaya terformat
-      const biayaInput = document.getElementById('biaya');
-      biayaInput.value = row.biaya;
-      formatRupiah(biayaInput);
-
-      document.getElementById('btn-submit-form').innerText = 'Update Data';
-      document.getElementById('btn-cancel-edit').style.display = 'block';
-
-      switchTab('entry'); // Lempar kembali ke tab input
-    }
-
-    // Fungsi Batal Edit
-    function cancelEdit() {
-      currentMode = 'create';
-      document.getElementById('entry_id').value = '';
-      document.getElementById('btn-submit-form').innerText = 'Simpan Data';
-      document.getElementById('btn-cancel-edit').style.display = 'none';
-      setupFormKondisi(); // Kunci kembali Odo Awal
-    }
-
-    // Fungsi Hapus (Delete)
-    async function hapusData(id) {
-      if(confirm('Yakin ingin menghapus data perjalanan ini?')) {
-        document.getElementById('loading').style.display = 'block';
-        try {
-          await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'delete', id: id })
-          });
-          alert('Data telah dihapus.');
-          fetchData(); // Refresh tabel
-        } catch (error) {
-          alert('Gagal menghapus data.');
-          document.getElementById('loading').style.display = 'none';
+        // Fetch Data from GAS
+        async function loadData() {
+            try {
+                const response = await fetch(API_URL);
+                allData = await response.json();
+                renderTable();
+                setupInitialState();
+            } catch (error) {
+                console.error("Error loading data", error);
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">Gagal memuat data</td></tr>';
+            }
         }
-      }
-    }
 
-    // Panggil data pertama kali saat aplikasi dibuka
-    fetchData();
+        function setupInitialState() {
+            // Set Odo Awal readonly jika data sudah ada
+            if (allData.length > 0) {
+                const lastEntry = allData[allData.length - 1];
+                odoAwal.value = lastEntry['Odo Akhir'];
+                odoAwal.readOnly = true;
+                odoAwal.classList.add('bg-gray-200');
+            } else {
+                odoAwal.readOnly = false;
+                odoAwal.classList.remove('bg-gray-200');
+            }
 
-  </script>
+            // Populate Datalist Pekerjaan Autocomplete
+            const pekerjaanList = document.getElementById('pekerjaanList');
+            const uniquePekerjaan = [...new Set(allData.map(item => item['Pekerjaan']))];
+            pekerjaanList.innerHTML = uniquePekerjaan.map(p => `<option value="${p}">`).join('');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            if (allData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Belum ada data.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = allData.slice().reverse().map(row => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3">${row['Tanggal']}</td>
+                    <td class="p-3">${row['Pekerjaan']}</td>
+                    <td class="p-3">${row['Selisih Odo']} Km</td>
+                    <td class="p-3">Rp ${parseInt(row['Nominal']).toLocaleString('id-ID')}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Handle Submit Data
+        document.getElementById('servisForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.innerText = 'Menyimpan...';
+            btnSubmit.disabled = true;
+
+            const payload = {
+                action: 'create',
+                tanggal: formatTanggal(document.getElementById('inputTanggal').value),
+                pekerjaan: document.getElementById('inputPekerjaan').value,
+                odoAwal: odoAwal.value,
+                odoAkhir: odoAkhir.value,
+                selisih: selisihOdo.value,
+                nominal: inputNominal.value.replace(/\./g, '') // Hapus titik untuk simpan integer
+            };
+
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Untuk handle block CORS pada pengiriman POST client-side GAS
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            // Karena mode no-cors menyembunyikan response, kita asumsikan sukses lalu reload data.
+            document.getElementById('servisForm').reset();
+            inputNominal.value = '';
+            selisihOdo.value = '';
+            
+            await loadData();
+            btnSubmit.innerText = 'Simpan Data';
+            btnSubmit.disabled = false;
+        });
+
+        // Export Excel via SheetJS
+        function exportExcel() {
+            if (allData.length === 0) return alert('Tidak ada data');
+            const ws = XLSX.utils.json_to_sheet(allData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Riwayat Servis");
+            XLSX.writeFile(wb, "Laporan_Servis_Motor.xlsx");
+        }
+
+        // Export PDF via jsPDF & AutoTable
+        function exportPDF() {
+            if (allData.length === 0) return alert('Tidak ada data');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.text("Laporan Riwayat Servis Motor", 14, 15);
+            
+            const tableColumn = ["Tanggal", "Pekerjaan", "Odo Awal", "Odo Akhir", "Selisih", "Nominal"];
+            const tableRows = [];
+
+            allData.forEach(row => {
+                const rowData = [
+                    row['Tanggal'], row['Pekerjaan'], row['Odo Awal'], 
+                    row['Odo Akhir'], row['Selisih Odo'], `Rp ${parseInt(row['Nominal']).toLocaleString('id-ID')}`
+                ];
+                tableRows.push(rowData);
+            });
+
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 20,
+            });
+            
+            doc.save("Laporan_Servis_Motor.pdf");
+        }
+
+        // Init
+        window.onload = loadData;
+    </script>
 </body>
 </html>
