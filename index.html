@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servis Motor Tracker</title>
+    <title>Servis & Bensin Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -12,136 +12,129 @@
 <body class="bg-gray-100 text-gray-800 font-sans p-4 md:p-8">
 
     <div class="max-w-2xl mx-auto">
-        <h1 class="text-2xl font-bold text-center mb-4 text-blue-600">Servis Motor Apps</h1>
+        <h1 class="text-2xl font-bold text-center mb-4 text-blue-600">Servis & Bensin Apps</h1>
 
-        <!-- Navigasi Menu -->
-        <div class="flex justify-center space-x-2 mb-6">
-            <button id="tabForm" onclick="switchMenu('form')" class="px-5 py-2 bg-blue-600 text-white font-bold rounded-lg shadow transition">
-                Entri Servis
-            </button>
-            <button id="tabRiwayat" onclick="switchMenu('riwayat')" class="px-5 py-2 bg-gray-200 text-gray-600 font-bold rounded-lg shadow hover:bg-gray-300 transition">
-                Lihat Riwayat
-            </button>
+        <!-- Navigasi Menu 4 Tab -->
+        <div class="flex flex-wrap justify-center gap-2 mb-6 text-sm md:text-base">
+            <button id="tabFormServis" onclick="switchMenu('formServis')" class="px-3 py-2 bg-blue-600 text-white font-bold rounded shadow transition">Entri Servis</button>
+            <button id="tabRiwayatServis" onclick="switchMenu('riwayatServis')" class="px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition">Riwayat Servis</button>
+            <button id="tabFormBensin" onclick="switchMenu('formBensin')" class="px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition">Entri Bensin</button>
+            <button id="tabRiwayatBensin" onclick="switchMenu('riwayatBensin')" class="px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition">Riwayat Bensin</button>
         </div>
 
-        <!-- MENU 1: Form Entry -->
-        <div id="menuForm" class="block bg-white p-6 rounded-xl shadow-md">
+        <!-- MENU 1: Form Servis -->
+        <div id="menuFormServis" class="block bg-white p-6 rounded-xl shadow-md menu-section">
             <h2 class="text-xl font-bold mb-4 border-b pb-2">Catat Servis Baru</h2>
             <form id="servisForm" class="space-y-4">
-                <input type="hidden" id="editId">
-                
-                <div>
-                    <label class="block text-sm font-medium mb-1">Tanggal</label>
-                    <input type="date" id="inputTanggal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Pekerjaan Servis</label>
-                    <input type="text" id="inputPekerjaan" list="pekerjaanList" placeholder="Misal: Ganti Oli Gardan, Servis CVT..." required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200">
-                    <datalist id="pekerjaanList"></datalist>
-                </div>
-
+                <input type="hidden" id="editIdServis">
+                <div><label class="block text-sm font-medium mb-1">Tanggal</label><input type="date" id="inputTanggalServis" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200"></div>
+                <div><label class="block text-sm font-medium mb-1">Pekerjaan</label><input type="text" id="inputPekerjaan" list="pekerjaanList" placeholder="Ganti Oli..." required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200"><datalist id="pekerjaanList"></datalist></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Odo Awal (Km)</label>
-                        <input type="number" id="odoAwal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200" placeholder="0">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Odo Akhir (Km)</label>
-                        <input type="number" id="odoAkhir" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200" placeholder="0">
-                    </div>
+                    <div><label class="block text-sm font-medium mb-1">Odo Awal</label><input type="number" id="odoAwalServis" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200"></div>
+                    <div><label class="block text-sm font-medium mb-1">Odo Akhir</label><input type="number" id="odoAkhirServis" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200"></div>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Selisih Odo (Km)</label>
-                    <input type="number" id="selisihOdo" readonly class="w-full bg-gray-200 border-gray-300 border p-2 rounded" placeholder="0">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Nominal Biaya (Rp)</label>
-                    <input type="text" id="inputNominal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200" placeholder="10.000">
-                </div>
-
+                <div><label class="block text-sm font-medium mb-1">Selisih Odo</label><input type="number" id="selisihOdoServis" readonly class="w-full bg-gray-200 border-gray-300 border p-2 rounded"></div>
+                <div><label class="block text-sm font-medium mb-1">Biaya (Rp)</label><input type="text" id="inputNominalServis" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200"></div>
+                
                 <div class="flex gap-2 pt-2">
-                    <button type="submit" id="btnSubmit" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition">
-                        Simpan Data
-                    </button>
-                    <button type="button" id="btnCancel" onclick="cancelEdit()" class="hidden w-1/3 bg-gray-500 text-white font-bold py-2 rounded hover:bg-gray-600 transition">
-                        Batal
-                    </button>
+                    <button type="submit" id="btnSubmitServis" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition">Simpan Servis</button>
+                    <button type="button" id="btnCancelServis" onclick="cancelEdit('Servis')" class="hidden w-1/3 bg-gray-500 text-white font-bold py-2 rounded hover:bg-gray-600 transition">Batal</button>
                 </div>
             </form>
         </div>
 
         <!-- MENU 2: Riwayat Servis -->
-        <div id="menuRiwayat" class="hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Data Riwayat Servis</h2>
-                <div class="space-x-2">
-                    <button onclick="exportExcel()" class="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700">Excel</button>
-                    <button onclick="exportPDF()" class="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700">PDF</button>
-                </div>
-            </div>
-
+        <div id="menuRiwayatServis" class="hidden menu-section">
+            <h2 class="text-xl font-bold mb-4">Riwayat Servis</h2>
             <div class="bg-white rounded-xl shadow-md overflow-x-auto">
-                <table class="w-full text-sm text-left" id="dataTable">
+                <table class="w-full text-sm text-left">
                     <thead class="bg-gray-50 text-gray-700">
-                        <tr>
-                            <th class="p-3">Tanggal</th>
-                            <th class="p-3">Pekerjaan</th>
-                            <th class="p-3">Selisih</th>
-                            <th class="p-3">Biaya</th>
-                            <th class="p-3">Aksi</th>
-                        </tr>
+                        <tr><th class="p-3">Tanggal</th><th class="p-3">Pekerjaan</th><th class="p-3">Selisih</th><th class="p-3">Biaya</th><th class="p-3">Aksi</th></tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y">
-                        <tr><td colspan="5" class="p-4 text-center">Memuat data...</td></tr>
-                    </tbody>
+                    <tbody id="tableBodyServis" class="divide-y"><tr><td colspan="5" class="p-4 text-center">Memuat...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MENU 3: Form Bensin -->
+        <div id="menuFormBensin" class="hidden bg-white p-6 rounded-xl shadow-md menu-section">
+            <h2 class="text-xl font-bold mb-4 border-b pb-2 text-green-600">Catat Isi Bensin</h2>
+            <form id="bensinForm" class="space-y-4">
+                <input type="hidden" id="editIdBensin">
+                <div><label class="block text-sm font-medium mb-1">Tanggal</label><input type="date" id="inputTanggalBensin" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-green-200"></div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Jenis BBM</label>
+                    <select id="inputJenisBBM" class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-green-200">
+                        <option value="Pertalite">Pertalite (Rp 10.000/L)</option>
+                        <option value="Pertamax">Pertamax (Rp 16.000/L)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium mb-1">Odo Awal</label><input type="number" id="odoAwalBensin" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-green-200"></div>
+                    <div><label class="block text-sm font-medium mb-1">Odo Akhir</label><input type="number" id="odoAkhirBensin" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-green-200"></div>
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Selisih Odo</label><input type="number" id="selisihOdoBensin" readonly class="w-full bg-gray-200 border-gray-300 border p-2 rounded"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium mb-1">Nominal (Rp)</label><input type="text" id="inputNominalBensin" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-green-200"></div>
+                    <div><label class="block text-sm font-medium mb-1">Total Liter</label><input type="text" id="inputLiterBensin" readonly class="w-full bg-green-50 border-green-300 border font-bold text-green-700 p-2 rounded"></div>
+                </div>
+                
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="btnSubmitBensin" class="w-full bg-green-600 text-white font-bold py-2 rounded hover:bg-green-700 transition">Simpan Bensin</button>
+                    <button type="button" id="btnCancelBensin" onclick="cancelEdit('Bensin')" class="hidden w-1/3 bg-gray-500 text-white font-bold py-2 rounded hover:bg-gray-600 transition">Batal</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- MENU 4: Riwayat Bensin -->
+        <div id="menuRiwayatBensin" class="hidden menu-section">
+            <h2 class="text-xl font-bold mb-4 text-green-600">Riwayat Bensin</h2>
+            <div class="bg-white rounded-xl shadow-md overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-green-50 text-gray-700 border-b-2 border-green-600">
+                        <tr><th class="p-3">Tanggal</th><th class="p-3">BBM</th><th class="p-3">Selisih Odo</th><th class="p-3">Nominal / Liter</th><th class="p-3">Aksi</th></tr>
+                    </thead>
+                    <tbody id="tableBodyBensin" class="divide-y"><tr><td colspan="5" class="p-4 text-center">Memuat...</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        // PASTIKAN TANDA KUTIP (' ') DI AWAL DAN AKHIR URL TIDAK TERHAPUS!
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxfxqdKHpZ9_axz074oYiUIREcybHwj_KBd816-ebXGYlucbF7z1apHBmkNUbNKI26ksA/exec';
+        // === MASUKKAN URL WEB APP GAS DI BAWAH INI ===
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzD6ZP2UyOsF7r5Ifr0XxnVKk4HN5Kdm_NfEnb1_7xPHORAGdFACUKZBzxHSVGieI9kqA/exec';
         
-        let allData = [];
+        let dataServis = [];
+        let dataBensin = [];
 
-        // Fitur Switch Menu (Tab)
-        function switchMenu(menu) {
-            const menuForm = document.getElementById('menuForm');
-            const menuRiwayat = document.getElementById('menuRiwayat');
-            const tabForm = document.getElementById('tabForm');
-            const tabRiwayat = document.getElementById('tabRiwayat');
+        // Tab Switcher Logika
+        function switchMenu(menuId) {
+            document.querySelectorAll('.menu-section').forEach(el => {
+                el.classList.replace('block', 'hidden');
+            });
+            document.getElementById('menu' + menuId.charAt(0).toUpperCase() + menuId.slice(1)).classList.replace('hidden', 'block');
 
-            if (menu === 'form') {
-                menuForm.classList.remove('hidden');
-                menuForm.classList.add('block');
-                menuRiwayat.classList.remove('block');
-                menuRiwayat.classList.add('hidden');
+            // Style warna Tab
+            const tabs = ['tabFormServis', 'tabRiwayatServis', 'tabFormBensin', 'tabRiwayatBensin'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(tab);
+                const isBensin = tab.includes('Bensin');
+                btn.className = isBensin ? 
+                    "px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition" : 
+                    "px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition";
+            });
 
-                tabForm.classList.replace('bg-gray-200', 'bg-blue-600');
-                tabForm.classList.replace('text-gray-600', 'text-white');
-                tabRiwayat.classList.replace('bg-blue-600', 'bg-gray-200');
-                tabRiwayat.classList.replace('text-white', 'text-gray-600');
+            const activeTab = document.getElementById('tab' + menuId.charAt(0).toUpperCase() + menuId.slice(1));
+            if(menuId.includes('Bensin')) {
+                activeTab.className = "px-3 py-2 bg-green-600 text-white font-bold rounded shadow transition";
             } else {
-                menuRiwayat.classList.remove('hidden');
-                menuRiwayat.classList.add('block');
-                menuForm.classList.remove('block');
-                menuForm.classList.add('hidden');
-
-                tabRiwayat.classList.replace('bg-gray-200', 'bg-blue-600');
-                tabRiwayat.classList.replace('text-gray-600', 'text-white');
-                tabForm.classList.replace('bg-blue-600', 'bg-gray-200');
-                tabForm.classList.replace('text-white', 'text-gray-600');
+                activeTab.className = "px-3 py-2 bg-blue-600 text-white font-bold rounded shadow transition";
             }
         }
 
-        // Format Rupiah
-        const inputNominal = document.getElementById('inputNominal');
-        inputNominal.addEventListener('input', function(e) {
-            let value = this.value.replace(/[^,\d]/g, '').toString();
+        // Helper Format Rupiah Input
+        function formatRupiahInput(e) {
+            let value = e.target.value.replace(/[^,\d]/g, '').toString();
             let split = value.split(',');
             let sisa = split[0].length % 3;
             let rupiah = split[0].substr(0, sisa);
@@ -150,187 +143,213 @@
                 let separator = sisa ? '.' : '';
                 rupiah += separator + ribuan.join('.');
             }
-            this.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
-        });
-
-        // Kalkulasi Odo
-        const odoAwal = document.getElementById('odoAwal');
-        const odoAkhir = document.getElementById('odoAkhir');
-        const selisihOdo = document.getElementById('selisihOdo');
-
-        function hitungSelisih() {
-            const awal = parseInt(odoAwal.value) || 0;
-            const akhir = parseInt(odoAkhir.value) || 0;
-            selisihOdo.value = Math.max(0, akhir - awal);
+            e.target.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
         }
-        odoAwal.addEventListener('input', hitungSelisih);
-        odoAkhir.addEventListener('input', hitungSelisih);
+        document.getElementById('inputNominalServis').addEventListener('input', formatRupiahInput);
+        document.getElementById('inputNominalBensin').addEventListener('input', formatRupiahInput);
 
-        // Fetch Data
-        async function loadData() {
-            try {
-                const response = await fetch(API_URL);
-                allData = await response.json();
-                renderTable();
-                setupInitialState();
-            } catch (error) {
-                console.error("Error:", error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data. Cek API URL.</td></tr>';
-            }
-        }
+        // Odo & Liter Calculation
+        function setupCalculations() {
+            // Servis
+            const odoAS = document.getElementById('odoAwalServis'), odoAkhS = document.getElementById('odoAkhirServis'), selS = document.getElementById('selisihOdoServis');
+            const hitungS = () => { selS.value = Math.max(0, (parseInt(odoAkhS.value)||0) - (parseInt(odoAS.value)||0)); };
+            odoAS.addEventListener('input', hitungS); odoAkhS.addEventListener('input', hitungS);
 
-        function setupInitialState() {
-            if (allData.length > 0 && !document.getElementById('editId').value) {
-                const lastEntry = allData[allData.length - 1];
-                odoAwal.value = lastEntry['Odo Akhir'];
-                odoAwal.readOnly = true;
-                odoAwal.classList.add('bg-gray-200');
-            } else if (!document.getElementById('editId').value) {
-                odoAwal.readOnly = false;
-                odoAwal.classList.remove('bg-gray-200');
-            }
+            // Bensin
+            const odoAB = document.getElementById('odoAwalBensin'), odoAkhB = document.getElementById('odoAkhirBensin'), selB = document.getElementById('selisihOdoBensin');
+            const hitungB = () => { selB.value = Math.max(0, (parseInt(odoAkhB.value)||0) - (parseInt(odoAB.value)||0)); };
+            odoAB.addEventListener('input', hitungB); odoAkhB.addEventListener('input', hitungB);
 
-            const pekerjaanList = document.getElementById('pekerjaanList');
-            const uniquePekerjaan = [...new Set(allData.map(item => item['Pekerjaan']))];
-            pekerjaanList.innerHTML = uniquePekerjaan.map(p => `<option value="${p}">`).join('');
+            // Liter Bensin
+            const jenisBBM = document.getElementById('inputJenisBBM');
+            const nomBensin = document.getElementById('inputNominalBensin');
+            const literBensin = document.getElementById('inputLiterBensin');
+            const hitungLiter = () => {
+                let nom = parseInt(nomBensin.value.replace(/\./g, '')) || 0;
+                let harga = jenisBBM.value === 'Pertamax' ? 16000 : 10000;
+                literBensin.value = (nom > 0) ? (nom / harga).toFixed(2) + " L" : "0 L";
+            };
+            jenisBBM.addEventListener('change', hitungLiter);
+            nomBensin.addEventListener('input', hitungLiter);
         }
 
         function displayTanggal(rawDate) {
             if(!rawDate) return '-';
             const d = new Date(rawDate);
-            if(isNaN(d)) return rawDate; 
-            return d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
+            return isNaN(d) ? rawDate : d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            if (allData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Belum ada data.</td></tr>';
-                return;
+        // MAIN FETCH
+        async function loadData() {
+            try {
+                // Fetch Servis
+                const resS = await fetch(API_URL + "?sheet=Sheet1");
+                dataServis = await resS.json();
+                
+                // Fetch Bensin
+                const resB = await fetch(API_URL + "?sheet=bensin");
+                dataBensin = await resB.json();
+
+                renderTableServis();
+                renderTableBensin();
+                setupInitialState('Servis', dataServis, document.getElementById('odoAwalServis'));
+                setupInitialState('Bensin', dataBensin, document.getElementById('odoAwalBensin'));
+            } catch (err) {
+                console.error(err);
+                document.getElementById('tableBodyServis').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat</td></tr>';
+                document.getElementById('tableBodyBensin').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat</td></tr>';
             }
-            tbody.innerHTML = allData.slice().reverse().map(row => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-3">${displayTanggal(row['Tanggal'])}</td>
-                    <td class="p-3">${row['Pekerjaan']}</td>
-                    <td class="p-3">${row['Selisih Odo']} Km</td>
-                    <td class="p-3">Rp ${parseInt(row['Nominal'] || 0).toLocaleString('id-ID')}</td>
-                    <td class="p-3 text-xs">
-                        <button onclick="editData('${row['ID']}')" class="text-blue-600 font-semibold mr-2 hover:underline">Edit</button>
-                        <button onclick="deleteData('${row['ID']}')" class="text-red-600 font-semibold hover:underline">Hapus</button>
-                    </td>
+        }
+
+        function setupInitialState(tipe, dataset, inputOdoAwal) {
+            const editId = document.getElementById('editId' + tipe).value;
+            if (dataset.length > 0 && !editId) {
+                inputOdoAwal.value = dataset[dataset.length - 1]['Odo Akhir'];
+                inputOdoAwal.readOnly = true;
+                inputOdoAwal.classList.add('bg-gray-200');
+            } else if (!editId) {
+                inputOdoAwal.readOnly = false;
+                inputOdoAwal.classList.remove('bg-gray-200');
+            }
+            if(tipe === 'Servis') {
+                const pList = [...new Set(dataset.map(item => item['Pekerjaan']))];
+                document.getElementById('pekerjaanList').innerHTML = pList.map(p => `<option value="${p}">`).join('');
+            }
+        }
+
+        function renderTableServis() {
+            const tbody = document.getElementById('tableBodyServis');
+            if (dataServis.length === 0) return tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Belum ada data.</td></tr>';
+            tbody.innerHTML = dataServis.slice().reverse().map(r => `
+                <tr class="hover:bg-gray-50 border-b">
+                    <td class="p-3">${displayTanggal(r['Tanggal'])}</td>
+                    <td class="p-3">${r['Pekerjaan']}</td>
+                    <td class="p-3">${r['Selisih Odo']} Km</td>
+                    <td class="p-3">Rp ${parseInt(r['Nominal']||0).toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-xs"><button onclick="editData('Servis', '${r['ID']}')" class="text-blue-600 font-bold mr-2">Edit</button><button onclick="deleteData('Sheet1', '${r['ID']}')" class="text-red-600 font-bold">Hapus</button></td>
                 </tr>
             `).join('');
         }
 
-        function editData(id) {
-            const dataToEdit = allData.find(item => item['ID'] === id);
-            if(!dataToEdit) return;
+        function renderTableBensin() {
+            const tbody = document.getElementById('tableBodyBensin');
+            if (dataBensin.length === 0) return tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Belum ada data.</td></tr>';
+            tbody.innerHTML = dataBensin.slice().reverse().map(r => `
+                <tr class="hover:bg-green-50 border-b">
+                    <td class="p-3">${displayTanggal(r['Tanggal'])}</td>
+                    <td class="p-3"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">${r['Jenis_BBM']}</span></td>
+                    <td class="p-3">${r['Selisih Odo']} Km</td>
+                    <td class="p-3">Rp ${parseInt(r['Nominal']||0).toLocaleString('id-ID')} <br><span class="text-gray-500 text-xs">${r['Liter']} L</span></td>
+                    <td class="p-3 text-xs"><button onclick="editData('Bensin', '${r['ID']}')" class="text-blue-600 font-bold mr-2">Edit</button><button onclick="deleteData('bensin', '${r['ID']}')" class="text-red-600 font-bold">Hapus</button></td>
+                </tr>
+            `).join('');
+        }
 
-            switchMenu('form');
-            document.getElementById('editId').value = id;
+        function editData(tipe, id) {
+            switchMenu('form' + tipe);
+            document.getElementById('editId' + tipe).value = id;
+            const isBensin = tipe === 'Bensin';
+            const dataset = isBensin ? dataBensin : dataServis;
+            const row = dataset.find(i => i['ID'] === id);
             
-            let tgl = dataToEdit['Tanggal'];
-            if(tgl) {
-                const d = new Date(tgl);
-                if(!isNaN(d)) {
-                    document.getElementById('inputTanggal').value = d.toISOString().split('T')[0];
-                } else {
-                    document.getElementById('inputTanggal').value = tgl; 
-                }
+            let tgl = row['Tanggal'];
+            if(tgl) { const d = new Date(tgl); document.getElementById('inputTanggal' + tipe).value = !isNaN(d) ? d.toISOString().split('T')[0] : tgl; }
+
+            document.getElementById('odoAwal' + tipe).value = row['Odo Awal'];
+            document.getElementById('odoAkhir' + tipe).value = row['Odo Akhir'];
+            document.getElementById('inputNominal' + tipe).value = parseInt(row['Nominal']).toLocaleString('id-ID').replace(/\./g, '.');
+
+            if(isBensin) {
+                document.getElementById('inputJenisBBM').value = row['Jenis_BBM'];
+                document.getElementById('inputLiterBensin').value = row['Liter'] + " L";
+            } else {
+                document.getElementById('inputPekerjaan').value = row['Pekerjaan'];
             }
-            
-            document.getElementById('inputPekerjaan').value = dataToEdit['Pekerjaan'];
-            odoAwal.value = dataToEdit['Odo Awal'];
-            odoAkhir.value = dataToEdit['Odo Akhir'];
-            inputNominal.value = parseInt(dataToEdit['Nominal']).toLocaleString('id-ID').replace(/\./g, '.');
-            
-            hitungSelisih();
-            odoAwal.readOnly = false;
-            odoAwal.classList.remove('bg-gray-200');
 
-            document.getElementById('btnSubmit').innerText = 'Update Data';
-            document.getElementById('btnSubmit').classList.replace('bg-blue-600', 'bg-yellow-500');
-            document.getElementById('btnSubmit').classList.replace('hover:bg-blue-700', 'hover:bg-yellow-600');
-            document.getElementById('btnCancel').classList.remove('hidden');
+            document.getElementById('odoAwal' + tipe).readOnly = false;
+            document.getElementById('odoAwal' + tipe).classList.remove('bg-gray-200');
+
+            const btnSub = document.getElementById('btnSubmit' + tipe);
+            btnSub.innerText = 'Update Data';
+            btnSub.className = isBensin ? "w-full bg-yellow-500 text-white font-bold py-2 rounded hover:bg-yellow-600 transition" : "w-full bg-yellow-500 text-white font-bold py-2 rounded hover:bg-yellow-600 transition";
+            document.getElementById('btnCancel' + tipe).classList.remove('hidden');
+            
+            if(isBensin) {
+                 const ev = new Event('input'); document.getElementById('odoAkhirBensin').dispatchEvent(ev);
+            } else {
+                 const ev = new Event('input'); document.getElementById('odoAkhirServis').dispatchEvent(ev);
+            }
         }
 
-        function cancelEdit() {
-            document.getElementById('servisForm').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('btnSubmit').innerText = 'Simpan Data';
-            document.getElementById('btnSubmit').classList.replace('bg-yellow-500', 'bg-blue-600');
-            document.getElementById('btnSubmit').classList.replace('hover:bg-yellow-600', 'hover:bg-blue-700');
-            document.getElementById('btnCancel').classList.add('hidden');
-            setupInitialState();
+        function cancelEdit(tipe) {
+            const form = tipe === 'Bensin' ? 'bensinForm' : 'servisForm';
+            document.getElementById(form).reset();
+            document.getElementById('editId' + tipe).value = '';
+            
+            const btnSub = document.getElementById('btnSubmit' + tipe);
+            btnSub.innerText = tipe === 'Bensin' ? 'Simpan Bensin' : 'Simpan Servis';
+            btnSub.className = tipe === 'Bensin' ? "w-full bg-green-600 text-white font-bold py-2 rounded hover:bg-green-700 transition" : "w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition";
+            document.getElementById('btnCancel' + tipe).classList.add('hidden');
+            
+            if(tipe === 'Bensin') setupInitialState('Bensin', dataBensin, document.getElementById('odoAwalBensin'));
+            else setupInitialState('Servis', dataServis, document.getElementById('odoAwalServis'));
         }
 
-        async function deleteData(id) {
+        async function deleteData(sheetName, id) {
             if(!confirm("Yakin ingin menghapus data ini?")) return;
-            const payload = { action: 'delete', id: id };
             await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ action: 'delete', id: id, sheet: sheetName })
             });
             await loadData();
         }
 
+        // Submit SERVIS
         document.getElementById('servisForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btnSubmit = document.getElementById('btnSubmit');
-            const editId = document.getElementById('editId').value;
-            
-            btnSubmit.innerText = 'Memproses...';
-            btnSubmit.disabled = true;
+            const id = document.getElementById('editIdServis').value;
+            const btn = document.getElementById('btnSubmitServis');
+            btn.innerText = 'Memproses...'; btn.disabled = true;
 
             const payload = {
-                action: editId ? 'update' : 'create',
-                id: editId,
-                tanggal: document.getElementById('inputTanggal').value, 
+                sheet: 'Sheet1', action: id ? 'update' : 'create', id: id,
+                tanggal: document.getElementById('inputTanggalServis').value,
                 pekerjaan: document.getElementById('inputPekerjaan').value,
-                odoAwal: odoAwal.value,
-                odoAkhir: odoAkhir.value,
-                selisih: selisihOdo.value,
-                nominal: inputNominal.value.replace(/\./g, '')
+                odoAwal: document.getElementById('odoAwalServis').value,
+                odoAkhir: document.getElementById('odoAkhirServis').value,
+                selisih: document.getElementById('selisihOdoServis').value,
+                nominal: document.getElementById('inputNominalServis').value.replace(/\./g, '')
             };
 
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            });
-
-            cancelEdit(); 
-            await loadData();
-            btnSubmit.disabled = false;
-            switchMenu('riwayat');
+            await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+            cancelEdit('Servis'); await loadData(); btn.disabled = false; switchMenu('riwayatServis');
         });
 
-        function exportExcel() {
-            if (allData.length === 0) return alert('Tidak ada data');
-            const ws = XLSX.utils.json_to_sheet(allData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Riwayat Servis");
-            XLSX.writeFile(wb, "Laporan_Servis_Motor.xlsx");
-        }
+        // Submit BENSIN
+        document.getElementById('bensinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editIdBensin').value;
+            const btn = document.getElementById('btnSubmitBensin');
+            btn.innerText = 'Memproses...'; btn.disabled = true;
 
-        function exportPDF() {
-            if (allData.length === 0) return alert('Tidak ada data');
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("Laporan Riwayat Servis Motor", 14, 15);
-            const tableColumn = ["Tanggal", "Pekerjaan", "Odo Awal", "Odo Akhir", "Selisih", "Nominal"];
-            const tableRows = [];
-            allData.forEach(row => {
-                tableRows.push([
-                    displayTanggal(row['Tanggal']), row['Pekerjaan'], row['Odo Awal'], 
-                    row['Odo Akhir'], row['Selisih Odo'], `Rp ${parseInt(row['Nominal']).toLocaleString('id-ID')}`
-                ]);
-            });
-            doc.autoTable({ head: [tableColumn], body: tableRows, startY: 20 });
-            doc.save("Laporan_Servis_Motor.pdf");
-        }
+            const payload = {
+                sheet: 'bensin', action: id ? 'update' : 'create', id: id,
+                tanggal: document.getElementById('inputTanggalBensin').value,
+                jenisBBM: document.getElementById('inputJenisBBM').value,
+                odoAwal: document.getElementById('odoAwalBensin').value,
+                odoAkhir: document.getElementById('odoAkhirBensin').value,
+                selisih: document.getElementById('selisihOdoBensin').value,
+                nominal: document.getElementById('inputNominalBensin').value.replace(/\./g, ''),
+                liter: document.getElementById('inputLiterBensin').value.replace(' L', '')
+            };
 
+            await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+            cancelEdit('Bensin'); await loadData(); btn.disabled = false; switchMenu('riwayatBensin');
+        });
+
+        // Init
+        setupCalculations();
         window.onload = loadData;
     </script>
 </body>
