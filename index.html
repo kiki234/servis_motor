@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Servis Motor Tracker</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (Excel) & jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -19,6 +17,8 @@
         <!-- Form Entry -->
         <div class="bg-white p-6 rounded-xl shadow-md mb-8">
             <form id="servisForm" class="space-y-4">
+                <input type="hidden" id="editId"> <!-- Hidden input untuk ID saat edit -->
+                
                 <div>
                     <label class="block text-sm font-medium mb-1">Tanggal</label>
                     <input type="date" id="inputTanggal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200">
@@ -26,7 +26,6 @@
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Pekerjaan Servis</label>
-                    <!-- Menggunakan input dengan datalist agar mendukung pencarian otomatis dari entri sebelumnya -->
                     <input type="text" id="inputPekerjaan" list="pekerjaanList" placeholder="Misal: Ganti Oli Gardan, Servis CVT..." required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200">
                     <datalist id="pekerjaanList"></datalist>
                 </div>
@@ -34,7 +33,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-1">Odo Awal (Km)</label>
-                        <input type="number" id="odoAwal" required class="w-full border-gray-300 border p-2 rounded bg-gray-50 focus:ring focus:ring-blue-200" placeholder="0">
+                        <input type="number" id="odoAwal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200" placeholder="0">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Odo Akhir (Km)</label>
@@ -52,9 +51,14 @@
                     <input type="text" id="inputNominal" required class="w-full border-gray-300 border p-2 rounded focus:ring focus:ring-blue-200" placeholder="10.000">
                 </div>
 
-                <button type="submit" id="btnSubmit" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition">
-                    Simpan Data
-                </button>
+                <div class="flex gap-2">
+                    <button type="submit" id="btnSubmit" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition">
+                        Simpan Data
+                    </button>
+                    <button type="button" id="btnCancel" onclick="cancelEdit()" class="hidden w-1/3 bg-gray-500 text-white font-bold py-2 rounded hover:bg-gray-600 transition">
+                        Batal
+                    </button>
+                </div>
             </form>
         </div>
 
@@ -73,12 +77,13 @@
                     <tr>
                         <th class="p-3">Tanggal</th>
                         <th class="p-3">Pekerjaan</th>
-                        <th class="p-3">Odo Selisih</th>
+                        <th class="p-3">Selisih</th>
                         <th class="p-3">Biaya</th>
+                        <th class="p-3">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody" class="divide-y">
-                    <tr><td colspan="4" class="p-4 text-center">Memuat data...</td></tr>
+                    <tr><td colspan="5" class="p-4 text-center">Memuat data...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -86,11 +91,11 @@
 
     <script>
         // MASUKKAN URL WEB APP GAS DI SINI
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxQcGEbZSeO5fkUMyZZ9R0JIc-zfJrFJAqodVbPWmAUSGZHYwBw2LrQ5F4Z4HnMCeadRg/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbypXmPgg4cOQxG3ndkJyT0rxFm_lwe7tSSq0Ydw1MUMwW94jPYw7CyzO340fdCDDf6WuA/exec';
         
         let allData = [];
 
-        // Format Rupiah Input (1000 -> 1.000)
+        // Format Rupiah
         const inputNominal = document.getElementById('inputNominal');
         inputNominal.addEventListener('input', function(e) {
             let value = this.value.replace(/[^,\d]/g, '').toString();
@@ -105,25 +110,20 @@
             this.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
         });
 
-        // Kalkulasi Otomatis Selisih Odo
+        // Kalkulasi Odo
         const odoAwal = document.getElementById('odoAwal');
         const odoAkhir = document.getElementById('odoAkhir');
         const selisihOdo = document.getElementById('selisihOdo');
 
-        odoAkhir.addEventListener('input', () => {
+        function hitungSelisih() {
             const awal = parseInt(odoAwal.value) || 0;
             const akhir = parseInt(odoAkhir.value) || 0;
             selisihOdo.value = Math.max(0, akhir - awal);
-        });
+        }
+        odoAwal.addEventListener('input', hitungSelisih);
+        odoAkhir.addEventListener('input', hitungSelisih);
 
-        // Format Tanggal (DD-MMMM-YYYY)
-        const formatTanggal = (dateStr) => {
-            const date = new Date(dateStr);
-            const options = { day: '2-digit', month: 'long', year: 'numeric' };
-            return date.toLocaleDateString('id-ID', options).replace(/ /g, '-');
-        };
-
-        // Fetch Data from GAS
+        // Fetch Data
         async function loadData() {
             try {
                 const response = await fetch(API_URL);
@@ -131,80 +131,154 @@
                 renderTable();
                 setupInitialState();
             } catch (error) {
-                console.error("Error loading data", error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">Gagal memuat data</td></tr>';
+                console.error("Error:", error);
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data</td></tr>';
             }
         }
 
         function setupInitialState() {
-            // Set Odo Awal readonly jika data sudah ada
-            if (allData.length > 0) {
+            if (allData.length > 0 && !document.getElementById('editId').value) {
                 const lastEntry = allData[allData.length - 1];
                 odoAwal.value = lastEntry['Odo Akhir'];
                 odoAwal.readOnly = true;
                 odoAwal.classList.add('bg-gray-200');
-            } else {
+            } else if (!document.getElementById('editId').value) {
                 odoAwal.readOnly = false;
                 odoAwal.classList.remove('bg-gray-200');
             }
 
-            // Populate Datalist Pekerjaan Autocomplete
             const pekerjaanList = document.getElementById('pekerjaanList');
             const uniquePekerjaan = [...new Set(allData.map(item => item['Pekerjaan']))];
             pekerjaanList.innerHTML = uniquePekerjaan.map(p => `<option value="${p}">`).join('');
         }
 
+        // Tampilkan Tanggal Format Indonesia (untuk tabel)
+        function displayTanggal(rawDate) {
+            if(!rawDate) return '-';
+            // Kalau formatnya masih berupa string panjang dari GAS, coba diubah
+            const d = new Date(rawDate);
+            if(isNaN(d)) return rawDate; 
+            return d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
+        }
+
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             if (allData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Belum ada data.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Belum ada data.</td></tr>';
                 return;
             }
             tbody.innerHTML = allData.slice().reverse().map(row => `
                 <tr class="hover:bg-gray-50">
-                    <td class="p-3">${row['Tanggal']}</td>
+                    <td class="p-3">${displayTanggal(row['Tanggal'])}</td>
                     <td class="p-3">${row['Pekerjaan']}</td>
                     <td class="p-3">${row['Selisih Odo']} Km</td>
-                    <td class="p-3">Rp ${parseInt(row['Nominal']).toLocaleString('id-ID')}</td>
+                    <td class="p-3">Rp ${parseInt(row['Nominal'] || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-xs">
+                        <button onclick="editData('${row['ID']}')" class="text-blue-600 font-semibold mr-2 hover:underline">Edit</button>
+                        <button onclick="deleteData('${row['ID']}')" class="text-red-600 font-semibold hover:underline">Hapus</button>
+                    </td>
                 </tr>
             `).join('');
         }
 
-        // Handle Submit Data
+        // Aksi: EDIT
+        function editData(id) {
+            const dataToEdit = allData.find(item => item['ID'] === id);
+            if(!dataToEdit) return;
+
+            document.getElementById('editId').value = id;
+            
+            // Konversi tanggal dari Sheet (string panjang) ke format YYYY-MM-DD untuk input
+            let tgl = dataToEdit['Tanggal'];
+            if(tgl) {
+                const d = new Date(tgl);
+                if(!isNaN(d)) {
+                    document.getElementById('inputTanggal').value = d.toISOString().split('T')[0];
+                } else {
+                    document.getElementById('inputTanggal').value = tgl; // fallback
+                }
+            }
+            
+            document.getElementById('inputPekerjaan').value = dataToEdit['Pekerjaan'];
+            odoAwal.value = dataToEdit['Odo Awal'];
+            odoAkhir.value = dataToEdit['Odo Akhir'];
+            inputNominal.value = parseInt(dataToEdit['Nominal']).toLocaleString('id-ID').replace(/\./g, '.');
+            
+            hitungSelisih();
+            
+            // Buka akses odo awal saat edit
+            odoAwal.readOnly = false;
+            odoAwal.classList.remove('bg-gray-200');
+
+            document.getElementById('btnSubmit').innerText = 'Update Data';
+            document.getElementById('btnSubmit').classList.replace('bg-blue-600', 'bg-yellow-500');
+            document.getElementById('btnSubmit').classList.replace('hover:bg-blue-700', 'hover:bg-yellow-600');
+            document.getElementById('btnCancel').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            document.getElementById('servisForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('btnSubmit').innerText = 'Simpan Data';
+            document.getElementById('btnSubmit').classList.replace('bg-yellow-500', 'bg-blue-600');
+            document.getElementById('btnSubmit').classList.replace('hover:bg-yellow-600', 'hover:bg-blue-700');
+            document.getElementById('btnCancel').classList.add('hidden');
+            setupInitialState();
+        }
+
+        // Aksi: DELETE
+        async function deleteData(id) {
+            if(!confirm("Yakin ingin menghapus data ini?")) return;
+            
+            // Tampilkan loading visual di tabel
+            const btn = event.target;
+            btn.innerText = "Menghapus...";
+            
+            const payload = { action: 'delete', id: id };
+            
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            
+            await loadData();
+        }
+
+        // Form Submit (Create & Update)
         document.getElementById('servisForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmit');
-            btnSubmit.innerText = 'Menyimpan...';
+            const editId = document.getElementById('editId').value;
+            
+            btnSubmit.innerText = 'Memproses...';
             btnSubmit.disabled = true;
 
             const payload = {
-                action: 'create',
-                tanggal: formatTanggal(document.getElementById('inputTanggal').value),
+                action: editId ? 'update' : 'create',
+                id: editId,
+                tanggal: document.getElementById('inputTanggal').value, // Simpan mentahan YYYY-MM-DD
                 pekerjaan: document.getElementById('inputPekerjaan').value,
                 odoAwal: odoAwal.value,
                 odoAkhir: odoAkhir.value,
                 selisih: selisihOdo.value,
-                nominal: inputNominal.value.replace(/\./g, '') // Hapus titik untuk simpan integer
+                nominal: inputNominal.value.replace(/\./g, '')
             };
 
             await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Untuk handle block CORS pada pengiriman POST client-side GAS
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             });
 
-            // Karena mode no-cors menyembunyikan response, kita asumsikan sukses lalu reload data.
-            document.getElementById('servisForm').reset();
-            inputNominal.value = '';
-            selisihOdo.value = '';
-            
+            cancelEdit(); // Reset form otomatis
             await loadData();
-            btnSubmit.innerText = 'Simpan Data';
             btnSubmit.disabled = false;
         });
 
-        // Export Excel via SheetJS
+        // Export PDF & Excel (sama seperti sebelumnya)
         function exportExcel() {
             if (allData.length === 0) return alert('Tidak ada data');
             const ws = XLSX.utils.json_to_sheet(allData);
@@ -213,35 +287,23 @@
             XLSX.writeFile(wb, "Laporan_Servis_Motor.xlsx");
         }
 
-        // Export PDF via jsPDF & AutoTable
         function exportPDF() {
             if (allData.length === 0) return alert('Tidak ada data');
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
             doc.text("Laporan Riwayat Servis Motor", 14, 15);
-            
             const tableColumn = ["Tanggal", "Pekerjaan", "Odo Awal", "Odo Akhir", "Selisih", "Nominal"];
             const tableRows = [];
-
             allData.forEach(row => {
-                const rowData = [
-                    row['Tanggal'], row['Pekerjaan'], row['Odo Awal'], 
+                tableRows.push([
+                    displayTanggal(row['Tanggal']), row['Pekerjaan'], row['Odo Awal'], 
                     row['Odo Akhir'], row['Selisih Odo'], `Rp ${parseInt(row['Nominal']).toLocaleString('id-ID')}`
-                ];
-                tableRows.push(rowData);
+                ]);
             });
-
-            doc.autoTable({
-                head: [tableColumn],
-                body: tableRows,
-                startY: 20,
-            });
-            
+            doc.autoTable({ head: [tableColumn], body: tableRows, startY: 20 });
             doc.save("Laporan_Servis_Motor.pdf");
         }
 
-        // Init
         window.onload = loadData;
     </script>
 </body>
