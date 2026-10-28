@@ -103,7 +103,7 @@
     </div>
 
     <script>
-        // === MASUKKAN URL WEB APP GAS DI SINI ===
+        // PASTIKAN TANDA KUTIP (' ') DI AWAL DAN AKHIR URL TIDAK TERHAPUS!
         const API_URL = 'https://script.google.com/macros/s/AKfycbxfxqdKHpZ9_axz074oYiUIREcybHwj_KBd816-ebXGYlucbF7z1apHBmkNUbNKI26ksA/exec';
         
         let allData = [];
@@ -175,7 +175,7 @@
                 setupInitialState();
             } catch (error) {
                 console.error("Error:", error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data. Cek API URL.</td></tr>';
             }
         }
 
@@ -195,7 +195,6 @@
             pekerjaanList.innerHTML = uniquePekerjaan.map(p => `<option value="${p}">`).join('');
         }
 
-        // Tampilkan Tanggal Format Indonesia (untuk tabel)
         function displayTanggal(rawDate) {
             if(!rawDate) return '-';
             const d = new Date(rawDate);
@@ -223,14 +222,11 @@
             `).join('');
         }
 
-        // Aksi: EDIT
         function editData(id) {
             const dataToEdit = allData.find(item => item['ID'] === id);
             if(!dataToEdit) return;
 
-            // Beralih ke Menu Form otomatis
             switchMenu('form');
-
             document.getElementById('editId').value = id;
             
             let tgl = dataToEdit['Tanggal'];
@@ -249,7 +245,6 @@
             inputNominal.value = parseInt(dataToEdit['Nominal']).toLocaleString('id-ID').replace(/\./g, '.');
             
             hitungSelisih();
-            
             odoAwal.readOnly = false;
             odoAwal.classList.remove('bg-gray-200');
 
@@ -269,7 +264,6 @@
             setupInitialState();
         }
 
-        // Aksi: DELETE
         async function deleteData(id) {
             if(!confirm("Yakin ingin menghapus data ini?")) return;
             const payload = { action: 'delete', id: id };
@@ -281,7 +275,6 @@
             await loadData();
         }
 
-        // Form Submit (Create & Update)
         document.getElementById('servisForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmit');
@@ -309,3 +302,36 @@
 
             cancelEdit(); 
             await loadData();
+            btnSubmit.disabled = false;
+            switchMenu('riwayat');
+        });
+
+        function exportExcel() {
+            if (allData.length === 0) return alert('Tidak ada data');
+            const ws = XLSX.utils.json_to_sheet(allData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Riwayat Servis");
+            XLSX.writeFile(wb, "Laporan_Servis_Motor.xlsx");
+        }
+
+        function exportPDF() {
+            if (allData.length === 0) return alert('Tidak ada data');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Laporan Riwayat Servis Motor", 14, 15);
+            const tableColumn = ["Tanggal", "Pekerjaan", "Odo Awal", "Odo Akhir", "Selisih", "Nominal"];
+            const tableRows = [];
+            allData.forEach(row => {
+                tableRows.push([
+                    displayTanggal(row['Tanggal']), row['Pekerjaan'], row['Odo Awal'], 
+                    row['Odo Akhir'], row['Selisih Odo'], `Rp ${parseInt(row['Nominal']).toLocaleString('id-ID')}`
+                ]);
+            });
+            doc.autoTable({ head: [tableColumn], body: tableRows, startY: 20 });
+            doc.save("Laporan_Servis_Motor.pdf");
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
