@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Servis & Bensin Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -14,12 +15,13 @@
     <div class="max-w-2xl mx-auto">
         <h1 class="text-2xl font-bold text-center mb-4 text-blue-600">Servis & Bensin Apps</h1>
 
-        <!-- Navigasi Menu 4 Tab -->
-        <div class="flex flex-wrap justify-center gap-2 mb-6 text-sm md:text-base">
+        <!-- Navigasi Menu 5 Tab -->
+        <div class="flex flex-wrap justify-center gap-2 mb-6 text-xs md:text-sm">
             <button id="tabFormServis" onclick="switchMenu('formServis')" class="px-3 py-2 bg-blue-600 text-white font-bold rounded shadow transition">Entri Servis</button>
             <button id="tabRiwayatServis" onclick="switchMenu('riwayatServis')" class="px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition">Riwayat Servis</button>
             <button id="tabFormBensin" onclick="switchMenu('formBensin')" class="px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition">Entri Bensin</button>
             <button id="tabRiwayatBensin" onclick="switchMenu('riwayatBensin')" class="px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition">Riwayat Bensin</button>
+            <button id="tabGrafikBensin" onclick="switchMenu('grafikBensin')" class="px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition">Grafik Bensin</button>
         </div>
 
         <!-- MENU 1: Form Servis -->
@@ -98,14 +100,33 @@
                 </table>
             </div>
         </div>
+
+        <!-- MENU 5: Grafik Bensin -->
+        <div id="menuGrafikBensin" class="hidden menu-section space-y-6">
+            <div class="bg-white p-5 rounded-xl shadow-md">
+                <h3 class="text-lg font-bold mb-3 text-green-700 border-b pb-2">Pengeluaran Bensin Per Hari</h3>
+                <div class="relative h-64 w-full">
+                    <canvas id="chartHarian"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md">
+                <h3 class="text-lg font-bold mb-3 text-teal-700 border-b pb-2">Pengeluaran Bensin Per Minggu</h3>
+                <div class="relative h-64 w-full">
+                    <canvas id="chartMingguan"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         // === MASUKKAN URL WEB APP GAS DI BAWAH INI ===
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzD6ZP2UyOsF7r5Ifr0XxnVKk4HN5Kdm_NfEnb1_7xPHORAGdFACUKZBzxHSVGieI9kqA/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw6Ia6Gjv5mNnihJLkK-lbJT5tIgpssWEifx9mBW6A-OJLdLVc-owy2A08XwGnwUTn5NA/exec';
         
         let dataServis = [];
         let dataBensin = [];
+        let chartHarianInstance = null;
+        let chartMingguanInstance = null;
 
         // Tab Switcher Logika
         function switchMenu(menuId) {
@@ -114,25 +135,22 @@
             });
             document.getElementById('menu' + menuId.charAt(0).toUpperCase() + menuId.slice(1)).classList.replace('hidden', 'block');
 
-            // Style warna Tab
-            const tabs = ['tabFormServis', 'tabRiwayatServis', 'tabFormBensin', 'tabRiwayatBensin'];
+            const tabs = ['tabFormServis', 'tabRiwayatServis', 'tabFormBensin', 'tabRiwayatBensin', 'tabGrafikBensin'];
             tabs.forEach(tab => {
-                const btn = document.getElementById(tab);
-                const isBensin = tab.includes('Bensin');
-                btn.className = isBensin ? 
-                    "px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition" : 
-                    "px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition";
+                document.getElementById(tab).className = "px-3 py-2 bg-gray-200 text-gray-600 font-bold rounded shadow hover:bg-gray-300 transition";
             });
 
             const activeTab = document.getElementById('tab' + menuId.charAt(0).toUpperCase() + menuId.slice(1));
-            if(menuId.includes('Bensin')) {
+            if(menuId === 'grafikBensin') {
+                activeTab.className = "px-3 py-2 bg-teal-600 text-white font-bold rounded shadow transition";
+                renderCharts(); // Gambar ulang grafik saat tab dibuka
+            } else if(menuId.includes('Bensin')) {
                 activeTab.className = "px-3 py-2 bg-green-600 text-white font-bold rounded shadow transition";
             } else {
                 activeTab.className = "px-3 py-2 bg-blue-600 text-white font-bold rounded shadow transition";
             }
         }
 
-        // Helper Format Rupiah Input
         function formatRupiahInput(e) {
             let value = e.target.value.replace(/[^,\d]/g, '').toString();
             let split = value.split(',');
@@ -148,19 +166,15 @@
         document.getElementById('inputNominalServis').addEventListener('input', formatRupiahInput);
         document.getElementById('inputNominalBensin').addEventListener('input', formatRupiahInput);
 
-        // Odo & Liter Calculation
         function setupCalculations() {
-            // Servis
             const odoAS = document.getElementById('odoAwalServis'), odoAkhS = document.getElementById('odoAkhirServis'), selS = document.getElementById('selisihOdoServis');
             const hitungS = () => { selS.value = Math.max(0, (parseInt(odoAkhS.value)||0) - (parseInt(odoAS.value)||0)); };
             odoAS.addEventListener('input', hitungS); odoAkhS.addEventListener('input', hitungS);
 
-            // Bensin
             const odoAB = document.getElementById('odoAwalBensin'), odoAkhB = document.getElementById('odoAkhirBensin'), selB = document.getElementById('selisihOdoBensin');
             const hitungB = () => { selB.value = Math.max(0, (parseInt(odoAkhB.value)||0) - (parseInt(odoAB.value)||0)); };
             odoAB.addEventListener('input', hitungB); odoAkhB.addEventListener('input', hitungB);
 
-            // Liter Bensin
             const jenisBBM = document.getElementById('inputJenisBBM');
             const nomBensin = document.getElementById('inputNominalBensin');
             const literBensin = document.getElementById('inputLiterBensin');
@@ -179,14 +193,20 @@
             return isNaN(d) ? rawDate : d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
         }
 
-        // MAIN FETCH
+        // Pengaman jika ada data liter yang masih berbentuk tanggal dari Google Sheets
+        function formatLiterSafe(val, nominal, jenis) {
+            if (typeof val === 'string' && val.includes('T')) {
+                const harga = jenis === 'Pertamax' ? 16000 : 10000;
+                return (parseInt(nominal || 0) / harga).toFixed(2);
+            }
+            return parseFloat(val || 0).toFixed(2);
+        }
+
         async function loadData() {
             try {
-                // Fetch Servis
                 const resS = await fetch(API_URL + "?sheet=Sheet1");
                 dataServis = await resS.json();
                 
-                // Fetch Bensin
                 const resB = await fetch(API_URL + "?sheet=bensin");
                 dataBensin = await resB.json();
 
@@ -194,6 +214,10 @@
                 renderTableBensin();
                 setupInitialState('Servis', dataServis, document.getElementById('odoAwalServis'));
                 setupInitialState('Bensin', dataBensin, document.getElementById('odoAwalBensin'));
+                
+                if(!document.getElementById('menuGrafikBensin').classList.contains('hidden')) {
+                    renderCharts();
+                }
             } catch (err) {
                 console.error(err);
                 document.getElementById('tableBodyServis').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat</td></tr>';
@@ -234,15 +258,124 @@
         function renderTableBensin() {
             const tbody = document.getElementById('tableBodyBensin');
             if (dataBensin.length === 0) return tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Belum ada data.</td></tr>';
-            tbody.innerHTML = dataBensin.slice().reverse().map(r => `
+            tbody.innerHTML = dataBensin.slice().reverse().map(r => {
+                const literBersih = formatLiterSafe(r['Liter'], r['Nominal'], r['Jenis_BBM']);
+                return `
                 <tr class="hover:bg-green-50 border-b">
                     <td class="p-3">${displayTanggal(r['Tanggal'])}</td>
                     <td class="p-3"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">${r['Jenis_BBM']}</span></td>
                     <td class="p-3">${r['Selisih Odo']} Km</td>
-                    <td class="p-3">Rp ${parseInt(r['Nominal']||0).toLocaleString('id-ID')} <br><span class="text-gray-500 text-xs">${r['Liter']} L</span></td>
+                    <td class="p-3">Rp ${parseInt(r['Nominal']||0).toLocaleString('id-ID')} <br><span class="text-gray-500 text-xs font-semibold">${literBersih} L</span></td>
                     <td class="p-3 text-xs"><button onclick="editData('Bensin', '${r['ID']}')" class="text-blue-600 font-bold mr-2">Edit</button><button onclick="deleteData('bensin', '${r['ID']}')" class="text-red-600 font-bold">Hapus</button></td>
                 </tr>
-            `).join('');
+            `}).join('');
+        }
+
+        // LOGIKA GRAFIK HARIAN & MINGGUAN
+        function renderCharts() {
+            if (dataBensin.length === 0) return;
+
+            // Urutkan berdasarkan tanggal terlama ke terbaru
+            const sorted = [...dataBensin].sort((a, b) => new Date(a['Tanggal']) - new Date(b['Tanggal']));
+
+            // 1. Agregasi Harian
+            const dailyMap = {};
+            // 2. Agregasi Mingguan (Berdasarkan hari Senin di minggu tersebut)
+            const weeklyMap = {};
+
+            sorted.forEach(item => {
+                const d = new Date(item['Tanggal']);
+                if (isNaN(d)) return;
+
+                const nominal = parseInt(item['Nominal'] || 0);
+                const liter = parseFloat(formatLiterSafe(item['Liter'], item['Nominal'], item['Jenis_BBM']));
+
+                // Key Harian
+                const dayKey = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                if (!dailyMap[dayKey]) dailyMap[dayKey] = { rp: 0, liter: 0 };
+                dailyMap[dayKey].rp += nominal;
+                dailyMap[dayKey].liter += liter;
+
+                // Key Mingguan (Cari tanggal Senin awal minggu)
+                const dayOfWeek = d.getDay();
+                const diffToMonday = d.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+                const monday = new Date(new Date(d).setDate(diffToMonday));
+                const weekKey = "Mgg " + monday.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                
+                if (!weeklyMap[weekKey]) weeklyMap[weekKey] = { rp: 0, liter: 0 };
+                weeklyMap[weekKey].rp += nominal;
+                weeklyMap[weekKey].liter += liter;
+            });
+
+            // Render Chart Harian
+            const ctxHarian = document.getElementById('chartHarian').getContext('2d');
+            if (chartHarianInstance) chartHarianInstance.destroy();
+            chartHarianInstance = new Chart(ctxHarian, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(dailyMap),
+                    datasets: [{
+                        label: 'Biaya Bensin (Rp)',
+                        data: Object.values(dailyMap).map(v => v.rp),
+                        backgroundColor: 'rgba(22, 163, 74, 0.7)',
+                        borderColor: 'rgb(22, 163, 74)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const key = ctx.label;
+                                    const info = dailyMap[key];
+                                    return `Rp ${info.rp.toLocaleString('id-ID')} (${info.liter.toFixed(2)} Liter)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Render Chart Mingguan
+            const ctxMingguan = document.getElementById('chartMingguan').getContext('2d');
+            if (chartMingguanInstance) chartMingguanInstance.destroy();
+            chartMingguanInstance = new Chart(ctxMingguan, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(weeklyMap),
+                    datasets: [{
+                        label: 'Total Mingguan (Rp)',
+                        data: Object.values(weeklyMap).map(v => v.rp),
+                        backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                        borderColor: 'rgb(13, 148, 136)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const key = ctx.label;
+                                    const info = weeklyMap[key];
+                                    return `Rp ${info.rp.toLocaleString('id-ID')} (${info.liter.toFixed(2)} Liter)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
         }
 
         function editData(tipe, id) {
@@ -261,7 +394,8 @@
 
             if(isBensin) {
                 document.getElementById('inputJenisBBM').value = row['Jenis_BBM'];
-                document.getElementById('inputLiterBensin').value = row['Liter'] + " L";
+                const literBersih = formatLiterSafe(row['Liter'], row['Nominal'], row['Jenis_BBM']);
+                document.getElementById('inputLiterBensin').value = literBersih + " L";
             } else {
                 document.getElementById('inputPekerjaan').value = row['Pekerjaan'];
             }
@@ -271,14 +405,11 @@
 
             const btnSub = document.getElementById('btnSubmit' + tipe);
             btnSub.innerText = 'Update Data';
-            btnSub.className = isBensin ? "w-full bg-yellow-500 text-white font-bold py-2 rounded hover:bg-yellow-600 transition" : "w-full bg-yellow-500 text-white font-bold py-2 rounded hover:bg-yellow-600 transition";
+            btnSub.className = "w-full bg-yellow-500 text-white font-bold py-2 rounded hover:bg-yellow-600 transition";
             document.getElementById('btnCancel' + tipe).classList.remove('hidden');
             
-            if(isBensin) {
-                 const ev = new Event('input'); document.getElementById('odoAkhirBensin').dispatchEvent(ev);
-            } else {
-                 const ev = new Event('input'); document.getElementById('odoAkhirServis').dispatchEvent(ev);
-            }
+            const ev = new Event('input'); 
+            document.getElementById(isBensin ? 'odoAkhirBensin' : 'odoAkhirServis').dispatchEvent(ev);
         }
 
         function cancelEdit(tipe) {
@@ -305,7 +436,6 @@
             await loadData();
         }
 
-        // Submit SERVIS
         document.getElementById('servisForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editIdServis').value;
@@ -326,7 +456,6 @@
             cancelEdit('Servis'); await loadData(); btn.disabled = false; switchMenu('riwayatServis');
         });
 
-        // Submit BENSIN
         document.getElementById('bensinForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editIdBensin').value;
@@ -348,7 +477,6 @@
             cancelEdit('Bensin'); await loadData(); btn.disabled = false; switchMenu('riwayatBensin');
         });
 
-        // Init
         setupCalculations();
         window.onload = loadData;
     </script>
